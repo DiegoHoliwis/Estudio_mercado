@@ -8,7 +8,7 @@ suppressMessages(library(rvest))
 print(paste0("Ejecución realizada a las ",Sys.time()))
 
 # Se carga la ultima base de datos disponible
-load("~/Proyectos/Análisis de mercado/RTarapaca.RData")
+load("/home/diego/Proyectos/Estudio mercado/RTarapaca.RData")
 
 # Buscamos los anuncio
 URL <- read_html("https://www.trabajando.cl/trabajo-tarapaca?order=3") %>% 
@@ -90,25 +90,30 @@ for (i in 1:20) {
     if(identical(Fecha_T, character()) == FALSE & Fecha_T !=''){break}}  
   
   # Se extrae un conjunto de atributos desde un objeto
-  datos <- data.frame(variable = df %>% 
-                        html_elements(xpath = "//div[contains(@class, 'col-md-4')]") %>%  
-                        html_text2(),
-                      Descripción = df %>% 
-                        html_elements(xpath = "//div[contains(@class, 'col-md-8 txt')]") %>% 
-                        html_text2() %>%
-                        .[(1:length(datos1))]) %>% 
-    slice(1:17) 
+  Variable = df %>% 
+    html_elements(xpath = "//div[contains(@class, 'col-md-4')]") %>%  
+    html_text2() %>% 
+    unlist() %>% 
+    as.character()
+  Descripción2 = df %>% 
+    html_elements(xpath = "//div[contains(@class, 'col-md-8 txt')]") %>% 
+    html_text2() %>%
+    .[(1:length(Variable))] %>% 
+    unlist() %>% 
+    as.character()
+  datos <- tibble(Variable,Descripción2) %>% 
+    slice(1:17)
   
   
-  Tipo_cargo  <- datos %>% filter(Variable ==  "Tipo de Cargo:") %>% select(Descripción) %>% as.character()
-  Vacantes    <- datos %>% filter(Variable ==  "Vacantes:") %>% select(Descripción) %>% as.numeric()
-  Region      <- datos %>% filter(Variable ==  "Región:") %>% select(Descripción) %>% as.character() %>% str_remove("\n")
-  Comuna      <- datos %>% filter(Variable ==  "Comuna:") %>% select(Descripción) %>% as.character() %>% str_remove("\n")
-  Jornada     <- datos %>% filter(Variable ==  "Jornada") %>% select(Descripción) %>% as.character()
+  Tipo_cargo  <- datos %>% filter(Variable ==  "Tipo de Cargo:")  %>% select(Descripción2) %>% as.character()
+  Vacantes    <- datos %>% filter(Variable ==  "Vacantes:") %>% select(Descripción2) %>% as.numeric()
+  Region      <- datos %>% filter(Variable ==  "Región:") %>% select(Descripción2) %>% as.character() %>% str_remove("\n")
+  Comuna      <- datos %>% filter(Variable ==  "Comuna:") %>% select(Descripción2) %>% as.character() %>% str_remove("\n")
+  Jornada     <- datos %>% filter(Variable ==  "Jornada") %>% select(Descripción2) %>% as.character()
   
-  Experiencia <- datos %>% filter(Variable ==  "Experiencia Mínima:") %>% select(Descripción) %>% as.character()
-  Estudios    <- datos %>% filter(Variable ==  "Estudios mínimos:") %>% select(Descripción) %>% as.character()
-  Reqiusitos  <- datos %>% filter(Variable ==  "Requisitos Minimos:") %>% select(Descripción) %>% as.character() %>%
+  Experiencia <- datos %>% filter(Variable ==  "Experiencia Mínima:") %>% select(Descripción2) %>% as.character()
+  Estudios    <- datos %>% filter(Variable ==  "Estudios mínimos:") %>% select(Descripción2) %>% as.character()
+  Reqiusitos  <- datos %>% filter(Variable ==  "Requisitos Minimos:") %>% select(Descripción2) %>% as.character() %>%
     str_replace_all("[:punct:]"," ") %>% 
     str_split_fixed('\n',str_count(.,"\n")+1) %>% 
     str_trim() %>% 
@@ -140,8 +145,7 @@ for (i in 1:20) {
 Trabajos <- Trabajos2 %>% add_row(Trabajos)
 
 # Se actualiza la data central
-nombre <- paste0("~/Proyectos/Análisis de mercado/RTarapaca.RData",sep = "")
-save(Trabajos,file = nombre)
+save(Trabajos,file = "/home/diego/Proyectos/Estudio mercado/RTarapaca.RData")
 
 # Mensaje para conR
 print(paste0("Se agregaron ", nrow(Trabajos2), " ofertas laborales", sep = ""))
